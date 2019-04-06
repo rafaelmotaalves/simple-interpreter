@@ -14,7 +14,9 @@ import br.ufpe.cin.if688.ast.PrintStm;
 import br.ufpe.cin.if688.ast.Stm;
 
 public class MaxArgsVisitor implements IVisitor<Integer> {
-
+	
+	private boolean inPrintStm = false;
+	
 	@Override
 	public Integer visit(Stm s) {
 		return s.accept(this);
@@ -34,54 +36,63 @@ public class MaxArgsVisitor implements IVisitor<Integer> {
 
 	@Override
 	public Integer visit(PrintStm s) {
-
-		return null;
+		inPrintStm = true;
+		return s.getExps().accept(this);
 	}
 
 	@Override
 	public Integer visit(Exp e) {
-		// TODO Auto-generated method stub
-		return null;
+		return e.accept(this);
 	}
 
 	@Override
 	public Integer visit(EseqExp e) {
-		// TODO Auto-generated method stub
-		return null;
+		int result;
+		if (e.getStm() instanceof PrintStm) {
+			result = Math.max(e.getStm().accept(this), 1 + e.getExp().accept(this));
+		} else {
+			result = 1 + e.getExp().accept(this);
+		}
+		
+		return result;
 	}
 
 	@Override
 	public Integer visit(IdExp e) {
+		if (inPrintStm) return 1;
 		return 0;
 	}
 
 	@Override
 	public Integer visit(NumExp e) {
+		if (inPrintStm) return 1;
 		return 0;
 	}
 
 	@Override
 	public Integer visit(OpExp e) {
-		// TODO Auto-generated method stub
-		return null;
+		if (inPrintStm) return 1;
+		return 0;
 	}
 
 	@Override
 	public Integer visit(ExpList el) {
-		// TODO Auto-generated method stub
-		return null;
+		return el.accept(this);
 	}
 
 	@Override
 	public Integer visit(PairExpList el) {
-		// TODO Auto-generated method stub
-		return null;
+		Integer headValue = el.getHead().accept(this);
+		Integer tailValue = el.getTail().accept(this);
+
+		return  headValue + tailValue;
 	}
 
 	@Override
 	public Integer visit(LastExpList el) {
-		// TODO Auto-generated method stub
-		return null;
+		int result = el.getHead().accept(this);
+		inPrintStm = false;
+		return result;
 	}
 
 }
